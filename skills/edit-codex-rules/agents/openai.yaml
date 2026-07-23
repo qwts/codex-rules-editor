@@ -1,0 +1,10 @@
+interface:
+  display_name: "Edit Codex Rules"
+  short_description: "View, validate, and safely edit command rules"
+  default_prompt: "Use $edit-codex-rules to open my Codex command rules editor."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "codex-rules-editor"
+      description: "Local MCP server for reading, validating, and editing Codex command rules"
+      transport: "stdio"

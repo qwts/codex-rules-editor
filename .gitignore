@@ -80,7 +80,9 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+# Compiled plugin assets are committed so marketplace installs run immediately.
+!dist/
+!dist/**
 .output
 
 # Gatsby files
