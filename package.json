@@ -1,0 +1,37 @@
+{
+  "name": "codex-rules-editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A local MCP app for viewing and editing Codex command rules.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "npm run build:widget && npm run build:server",
+    "build:server": "esbuild src/server/index.ts --bundle --platform=node --format=esm --target=node24 --outfile=dist/server/index.js",
+    "build:widget": "vite build",
+    "check": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.widget.json --noEmit",
+    "test": "node --test --experimental-strip-types test/*.test.ts",
+    "validate": "npm run check && npm run build && npm test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.0.1",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.13",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "esbuild": "^0.28.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
+  }
+}

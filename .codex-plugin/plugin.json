@@ -1,0 +1,30 @@
+{
+  "name": "codex-rules-editor",
+  "version": "0.1.0",
+  "description": "View, test, and safely edit local Codex command rules.",
+  "author": {
+    "name": "qwts",
+    "url": "https://github.com/qwts"
+  },
+  "homepage": "https://github.com/qwts/codex-rules-editor",
+  "repository": "https://github.com/qwts/codex-rules-editor",
+  "license": "Apache-2.0",
+  "keywords": ["codex", "rules", "permissions", "security"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Codex Rules Editor",
+    "shortDescription": "Inspect and safely edit Codex command rules",
+    "longDescription": "A local rules editor with structured prefix editing, risk warnings, backups, and validation through Codex execpolicy.",
+    "developerName": "qwts",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "websiteURL": "https://github.com/qwts/codex-rules-editor",
+    "defaultPrompt": [
+      "Open my Codex command rules editor.",
+      "Show which Codex rule matches a command.",
+      "Help me add a narrow command allow rule."
+    ],
+    "brandColor": "#10A37F"
+  }
+}
