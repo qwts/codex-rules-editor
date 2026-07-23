@@ -497,23 +497,21 @@ export class RulesManager {
     }
     const rendered = renderRule(definition);
     let candidate: string;
+    let savedRuleStart: number;
     if (existing === undefined) {
-      candidate =
-        original.trimEnd() === ""
-          ? `${rendered}\n`
-          : `${original.trimEnd()}\n\n${rendered}\n`;
+      const prefix =
+        original.trimEnd() === "" ? "" : `${original.trimEnd()}\n\n`;
+      savedRuleStart = prefix.length;
+      candidate = `${prefix}${rendered}\n`;
     } else {
+      savedRuleStart = existing.start;
       candidate = `${original.slice(0, existing.start)}${rendered}${original.slice(existing.end)}`;
     }
     await this.#validateCandidate(candidate);
     const backupPath = await this.#atomicReplace(filePath, original, candidate);
     const updated = await this.snapshot();
     const savedRule = updated.rules.find(
-      (rule) =>
-        rule.file === file &&
-        JSON.stringify(rule.pattern) === JSON.stringify(definition.pattern) &&
-        rule.decision === definition.decision &&
-        rule.justification === definition.justification,
+      (rule) => rule.file === file && rule.start === savedRuleStart,
     );
     return {
       snapshot: updated,
@@ -594,7 +592,7 @@ export class RulesManager {
           "--rules",
           temporaryPath,
           "--",
-          "/usr/bin/true",
+          "true",
         ],
         { maxBuffer: 1024 * 1024 },
       );

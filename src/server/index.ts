@@ -15,6 +15,7 @@ import {
   type RuleDecision,
   type RuleSnapshot,
 } from "./rules.js";
+import { escapeInlineAsset } from "./html.js";
 
 const SERVER_NAME = "Codex Rules Editor";
 const SERVER_VERSION = "0.1.0";
@@ -68,11 +69,11 @@ async function widgetHtml(): Promise<string> {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <style>${css}</style>
+    <style>${escapeInlineAsset(css, "style")}</style>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module">${javascript}</script>
+    <script type="module">${escapeInlineAsset(javascript, "script")}</script>
   </body>
 </html>`;
 }
@@ -254,7 +255,7 @@ registerAppTool(
   {
     title: "Test a command against Codex rules",
     description:
-      "Run codex execpolicy check with an argv array and return the effective matching rule decision. This never executes the tested command.",
+      "Run codex execpolicy check with an argv array against user-level rules in CODEX_HOME and return the matching decision. Project and team rule layers are not included. This never executes the tested command.",
     inputSchema: {
       argv: z.array(z.string().min(1)).min(1).max(128),
     },

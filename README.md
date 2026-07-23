@@ -12,7 +12,7 @@ the active file. It never executes commands entered in the policy tester.
 
 - Browse and search rules across every user-level `*.rules` file.
 - Add, update, and delete structured `prefix_rule` entries.
-- Test an argument vector against the effective policy without executing it.
+- Test an argument vector against user-level rules without executing it.
 - Require explicit acknowledgement for broad or risky command prefixes.
 - Validate every mutation with Codex before replacing the active file.
 - Preserve the previous file under `~/.codex/rule-backups`.
@@ -32,6 +32,8 @@ tools to list, test, save, or delete rules.
 
 This plugin manages command prefix rules only. It does not change Codex sandbox
 modes, approval policy, `AGENTS.md` instructions, or application permissions.
+The command tester evaluates files under `~/.codex/rules`; project and team
+rule layers are outside this user-level editor's scope.
 
 ## Install locally
 

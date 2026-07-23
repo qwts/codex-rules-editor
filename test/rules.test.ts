@@ -131,3 +131,36 @@ test("manager requires acknowledgement for a broad prefix", async () => {
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("manager returns the id of the newly appended duplicate-shaped rule", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "codex-rules-editor-"));
+  try {
+    const manager = new RulesManager({
+      codexHome: path.join(directory, "codex-home"),
+      codexBinary: "/usr/bin/true",
+    });
+    const first = await manager.save({
+      pattern: ["git", "status"],
+      decision: "allow",
+      justification: "Inspect status",
+      match: ["git status"],
+      notMatch: [],
+    });
+    const second = await manager.save({
+      pattern: ["git", "status"],
+      decision: "allow",
+      justification: "Inspect status",
+      match: ["git status --short"],
+      notMatch: ["git status --porcelain=v2"],
+    });
+
+    assert.notEqual(first.savedRuleId, second.savedRuleId);
+    const saved = second.snapshot.rules.find(
+      (rule) => rule.id === second.savedRuleId,
+    );
+    assert.deepEqual(saved?.match, ["git status --short"]);
+    assert.deepEqual(saved?.notMatch, ["git status --porcelain=v2"]);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});

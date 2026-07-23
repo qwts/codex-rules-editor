@@ -140,8 +140,8 @@ function draftFor(rule?: Rule): Draft {
     patternText: JSON.stringify(rule?.pattern ?? ["git", "status"]),
     decision: rule?.decision ?? "allow",
     justification: rule?.justification ?? "",
-    matchText: rule?.match.join("\n") ?? "",
-    notMatchText: rule?.notMatch.join("\n") ?? "",
+    matchText: rule?.match?.join("\n") ?? "",
+    notMatchText: rule?.notMatch?.join("\n") ?? "",
     acknowledgeBroad: false,
   };
 }
@@ -481,7 +481,7 @@ function App() {
       <section className="tester">
         <div>
           <h2>Test a command</h2>
-          <p>Checks matching rules without executing the command.</p>
+          <p>Checks user-level rules without executing the command.</p>
         </div>
         <div className="tester-controls">
           <input

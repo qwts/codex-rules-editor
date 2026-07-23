@@ -32059,20 +32059,23 @@ var RulesManager = class {
     }
     const rendered = renderRule(definition);
     let candidate;
+    let savedRuleStart;
     if (existing === void 0) {
-      candidate = original.trimEnd() === "" ? `${rendered}
-` : `${original.trimEnd()}
+      const prefix = original.trimEnd() === "" ? "" : `${original.trimEnd()}
 
-${rendered}
+`;
+      savedRuleStart = prefix.length;
+      candidate = `${prefix}${rendered}
 `;
     } else {
+      savedRuleStart = existing.start;
       candidate = `${original.slice(0, existing.start)}${rendered}${original.slice(existing.end)}`;
     }
     await this.#validateCandidate(candidate);
     const backupPath = await this.#atomicReplace(filePath, original, candidate);
     const updated = await this.snapshot();
     const savedRule = updated.rules.find(
-      (rule) => rule.file === file2 && JSON.stringify(rule.pattern) === JSON.stringify(definition.pattern) && rule.decision === definition.decision && rule.justification === definition.justification
+      (rule) => rule.file === file2 && rule.start === savedRuleStart
     );
     return {
       snapshot: updated,
@@ -32144,7 +32147,7 @@ ${rendered}
           "--rules",
           temporaryPath,
           "--",
-          "/usr/bin/true"
+          "true"
         ],
         { maxBuffer: 1024 * 1024 }
       );
@@ -32195,6 +32198,14 @@ ${stderr}` : ""}`);
   }
 };
 
+// src/server/html.ts
+function escapeInlineAsset(source, tagName) {
+  return source.replace(
+    new RegExp(`</${tagName}`, "gi"),
+    (closingTag) => `<\\/${closingTag.slice(2)}`
+  );
+}
+
 // src/server/index.ts
 var SERVER_NAME = "Codex Rules Editor";
 var SERVER_VERSION = "0.1.0";
@@ -32236,11 +32247,11 @@ async function widgetHtml() {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <style>${css}</style>
+    <style>${escapeInlineAsset(css, "style")}</style>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module">${javascript}</script>
+    <script type="module">${escapeInlineAsset(javascript, "script")}</script>
   </body>
 </html>`;
 }
@@ -32408,7 +32419,7 @@ K3(
   "test_command",
   {
     title: "Test a command against Codex rules",
-    description: "Run codex execpolicy check with an argv array and return the effective matching rule decision. This never executes the tested command.",
+    description: "Run codex execpolicy check with an argv array against user-level rules in CODEX_HOME and return the matching decision. Project and team rule layers are not included. This never executes the tested command.",
     inputSchema: {
       argv: external_exports.array(external_exports.string().min(1)).min(1).max(128)
     },

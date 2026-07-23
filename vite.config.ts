@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: "dist/widget",
-    emptyOutDir: false,
+    emptyOutDir: true,
     cssCodeSplit: false,
     rollupOptions: {
       input: "src/widget/index.html",
