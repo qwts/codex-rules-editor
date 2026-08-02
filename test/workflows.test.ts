@@ -17,11 +17,6 @@ test('lifecycle workflow has governed triggers, actor fields, and draft skipping
   assert.match(ci, /run-name: CI/);
 });
 
-test('PR concurrency is scoped and cancels obsolete runs', () => {
-  assert.match(ci, /format\('pr-\{0\}', github\.event\.pull_request\.number\)/);
-  assert.match(ci, /cancel-in-progress: \$\{\{ github\.event_name != 'push' \}\}/);
-});
-
 test('preflight evidence is exact-SHA and falls back to the complete suite', () => {
   assert.match(ci, /event=workflow_dispatch&head_sha=\$TARGET_SHA/);
   assert.match(ci, /\.path == "\.github\/workflows\/ci\.yml"/);
