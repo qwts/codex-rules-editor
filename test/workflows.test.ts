@@ -26,7 +26,7 @@ test('preflight evidence is exact-SHA and falls back to the complete suite', () 
   assert.match(ci, /event=workflow_dispatch&head_sha=\$TARGET_SHA/);
   assert.match(ci, /\.path == "\.github\/workflows\/ci\.yml"/);
   assert.match(ci, /\.display_title == "CI purpose=exact-sha-preflight"/);
-  assert.match(ci, /needs\['preflight-evidence'\]\.outputs\.validated != 'true'/);
+  assert.match(ci, /needs\.preflight_evidence\.outputs\.validated != 'true'/);
   assert.match(ci, /name: Complete suite/);
   assert.match(ci, /run: npm run validate/);
 });
