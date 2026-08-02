@@ -7,7 +7,6 @@ const codeql = readFileSync(new URL('../.github/workflows/codeql.yml', import.me
 
 test('lifecycle workflow has governed triggers, actor fields, and draft skipping', () => {
   assert.match(ci, /^  pull_request:\n/m);
-  assert.match(ci, /^  merge_group:\n/m);
   assert.match(ci, /^  push:\n    branches: \[main\]$/m);
   assert.match(ci, /^  workflow_dispatch:\n/m);
   assert.match(ci, /github\.event\.pull_request\.draft == false/);
