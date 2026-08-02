@@ -13,6 +13,8 @@
     "build:widget": "vite build",
     "check": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.widget.json --noEmit",
     "test": "node --test --experimental-strip-types test/*.test.ts",
+    "test:workflows": "node --test --experimental-strip-types test/workflows.test.ts",
+    "lint:workflows": "go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12",
     "validate": "npm run check && npm run build && npm test"
   },
   "dependencies": {
