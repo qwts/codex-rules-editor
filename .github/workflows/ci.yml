@@ -5,6 +5,8 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+  merge_group:
+    types: [checks_requested]
   push:
     branches: [main]
   workflow_dispatch:
@@ -23,16 +25,16 @@ on:
 permissions:
   actions: read
   contents: read
-  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.event_name == 'merge_group' && format('merge-group-{0}', github.event.merge_group.head_ref) || github.sha }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
 
 jobs:
   policy:
     name: Action Policy
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    env:
-      CI_POLICY_ACTOR: ${{ github.actor }}
-      CI_POLICY_TRIGGERING_ACTOR: ${{ github.triggering_actor }}
     outputs:
       mode: ${{ steps.policy.outputs.mode }}
       run_full: ${{ steps.policy.outputs.run_full }}
@@ -40,12 +42,12 @@ jobs:
     steps:
       - id: policy
         name: Enforce immutable actor and fork policy
-        run: |
-          echo 'mode=full' >> "$GITHUB_OUTPUT"
-          echo 'run_full=true' >> "$GITHUB_OUTPUT"
-          echo 'run_post_merge=false' >> "$GITHUB_OUTPUT"
+        uses: qwts/playbook-engineering/.github/actions/ci-policy@060c1fae87a9297f6480a9fdd3a4e7741bb92e80
+        env:
+          CI_POLICY_ACTOR: ${{ github.actor }}
+          CI_POLICY_TRIGGERING_ACTOR: ${{ github.triggering_actor }}
 
-  merge_evidence:
+  merge-evidence:
     name: Verify exact main evidence
     needs: policy
     if: needs.policy.outputs.run_post_merge == 'true'
@@ -67,7 +69,7 @@ jobs:
           fi
           echo "validated=$validated" >> "$GITHUB_OUTPUT"
 
-  preflight_evidence:
+  preflight-evidence:
     name: Verify exact PR-head preflight
     needs: policy
     if: github.event_name == 'pull_request' && needs.policy.outputs.run_full == 'true'
@@ -92,11 +94,11 @@ jobs:
 
   complete:
     name: Complete suite
-    needs: [policy, merge_evidence, preflight_evidence]
+    needs: [policy, merge-evidence, preflight-evidence]
     if: >-
       always() && needs.policy.result == 'success' &&
-      ((needs.policy.outputs.run_full == 'true' && needs.preflight_evidence.outputs.validated != 'true') ||
-      (needs.policy.outputs.run_post_merge == 'true' && needs.merge_evidence.outputs.validated != 'true'))
+      ((needs.policy.outputs.run_full == 'true' && needs.preflight-evidence.outputs.validated != 'true') ||
+      (needs.policy.outputs.run_post_merge == 'true' && needs.merge-evidence.outputs.validated != 'true'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -117,18 +119,21 @@ jobs:
 
   codeql:
     name: Advanced CodeQL
-    needs: [policy, merge_evidence, preflight_evidence]
+    needs: [policy, merge-evidence, preflight-evidence]
     if: >-
       always() && needs.policy.result == 'success' &&
       (needs.policy.outputs.run_post_merge == 'true' ||
-      (needs.policy.outputs.run_full == 'true' && needs.preflight_evidence.outputs.validated != 'true'))
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo 'diagnostic placeholder'
+      (needs.policy.outputs.run_full == 'true' && needs.preflight-evidence.outputs.validated != 'true'))
+    permissions:
+      actions: read
+      contents: read
+      packages: read
+      security-events: write
+    uses: ./.github/workflows/codeql.yml
 
   gate:
     name: CI
-    needs: [policy, merge_evidence, preflight_evidence, complete, codeql]
+    needs: [policy, merge-evidence, preflight-evidence, complete, codeql]
     if: always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
     steps:
@@ -138,9 +143,9 @@ jobs:
           POLICY: ${{ needs.policy.result }}
           COMPLETE: ${{ needs.complete.result }}
           CODEQL: ${{ needs.codeql.result }}
-          PREFLIGHT: ${{ needs.preflight_evidence.result }}
-          PREFLIGHT_VALIDATED: ${{ needs.preflight_evidence.outputs.validated }}
-          MERGE_VALIDATED: ${{ needs.merge_evidence.outputs.validated }}
+          PREFLIGHT: ${{ needs.preflight-evidence.result }}
+          PREFLIGHT_VALIDATED: ${{ needs.preflight-evidence.outputs.validated }}
+          MERGE_VALIDATED: ${{ needs.merge-evidence.outputs.validated }}
         run: |
           test "$POLICY" = success
           case "$MODE" in
