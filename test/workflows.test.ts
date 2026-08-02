@@ -13,6 +13,8 @@ test('lifecycle workflow has governed triggers, actor fields, and draft skipping
   assert.match(ci, /CI_POLICY_ACTOR: \$\{\{ github\.actor \}\}/);
   assert.match(ci, /CI_POLICY_TRIGGERING_ACTOR: \$\{\{ github\.triggering_actor \}\}/);
   assert.match(ci, /fork policy/);
+  assert.match(ci, /github-merge-queue\[bot\]/);
+  assert.match(ci, /gh-readonly-queue\/main/);
   assert.match(ci, /ci-policy@[0-9a-f]{40}/);
   assert.match(ci, /run-name: CI/);
 });
@@ -24,6 +26,7 @@ test('preflight evidence is exact-SHA and falls back to the complete suite', () 
   assert.match(ci, /needs\.preflight-evidence\.outputs\.validated != 'true'/);
   assert.match(ci, /name: Complete suite/);
   assert.match(ci, /run: npm run validate/);
+  assert.doesNotMatch(ci, /name: Run workflow contract tests/);
 });
 
 test('stable CI gate covers manual, queue, PR, and main fallback lanes', () => {

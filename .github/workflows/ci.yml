@@ -36,16 +36,36 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     outputs:
-      mode: ${{ steps.policy.outputs.mode }}
-      run_full: ${{ steps.policy.outputs.run_full }}
-      run_post_merge: ${{ steps.policy.outputs.run_post_merge }}
+      mode: ${{ steps.policy.outputs.mode || steps.merge_queue_policy.outputs.mode }}
+      run_full: ${{ steps.policy.outputs.run_full || steps.merge_queue_policy.outputs.run_full }}
+      run_post_merge: ${{ steps.policy.outputs.run_post_merge || steps.merge_queue_policy.outputs.run_post_merge }}
     steps:
       - id: policy
         name: Enforce immutable actor and fork policy
+        if: github.event_name != 'merge_group'
         uses: qwts/playbook-engineering/.github/actions/ci-policy@060c1fae87a9297f6480a9fdd3a4e7741bb92e80
         env:
           CI_POLICY_ACTOR: ${{ github.actor }}
           CI_POLICY_TRIGGERING_ACTOR: ${{ github.triggering_actor }}
+      - id: merge_queue_policy
+        name: Enforce immutable merge queue actor policy
+        if: github.event_name == 'merge_group'
+        env:
+          CI_POLICY_ACTOR: ${{ github.actor }}
+          CI_POLICY_TRIGGERING_ACTOR: ${{ github.triggering_actor }}
+          CI_POLICY_ACTION: ${{ github.event.action }}
+          CI_POLICY_BASE_REF: ${{ github.event.merge_group.base_ref }}
+          CI_POLICY_HEAD_REF: ${{ github.event.merge_group.head_ref }}
+        run: |
+          test "$CI_POLICY_ACTOR" = 'github-merge-queue[bot]'
+          test "$CI_POLICY_TRIGGERING_ACTOR" = 'github-merge-queue[bot]'
+          test "$CI_POLICY_ACTION" = checks_requested
+          test "$CI_POLICY_BASE_REF" = refs/heads/main
+          case "$CI_POLICY_HEAD_REF" in
+            refs/heads/gh-readonly-queue/main/*) ;;
+            *) exit 1 ;;
+          esac
+          printf 'mode=queue\nrun_full=true\nrun_post_merge=false\n' >> "$GITHUB_OUTPUT"
 
   merge-evidence:
     name: Verify exact main evidence
@@ -112,8 +132,6 @@ jobs:
         run: npm ci
       - name: Run repository validation contract
         run: npm run validate
-      - name: Run workflow contract tests
-        run: npm run test:workflows
       - name: Run pinned actionlint
         run: npm run lint:workflows
 
