@@ -43,7 +43,7 @@ jobs:
       - id: policy
         name: Enforce immutable actor and fork policy
         if: github.event_name != 'merge_group'
-        uses: qwts/playbook-engineering/.github/actions/ci-policy@060c1fae87a9297f6480a9fdd3a4e7741bb92e80
+        uses: qwts/playbook-engineering/.github/actions/ci-policy@4e70c773155c2c804e52a487352627010bea1897
         env:
           CI_POLICY_ACTOR: ${{ github.actor }}
           CI_POLICY_TRIGGERING_ACTOR: ${{ github.triggering_actor }}
