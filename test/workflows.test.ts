@@ -16,12 +16,15 @@ test('lifecycle workflow has governed triggers, actor fields, and draft skipping
   assert.match(ci, /github-merge-queue\[bot\]/);
   assert.match(ci, /gh-readonly-queue\/main/);
   assert.match(ci, /ci-policy@[0-9a-f]{40}/);
+  assert.match(ci, /name: Workflow runtime policy/);
+  assert.match(ci, /runtime-policy\.mjs --root/);
   assert.match(ci, /run-name: CI/);
 });
 
 test('preflight evidence is exact-SHA and falls back to the complete suite', () => {
   assert.match(ci, /event=workflow_dispatch&head_sha=\$TARGET_SHA/);
   assert.match(ci, /\.path == "\.github\/workflows\/ci\.yml"/);
+  assert.doesNotMatch(ci, /\.workflow_runs\[\].*\.name == "CI"/);
   assert.match(ci, /\.display_title == "CI purpose=exact-sha-preflight"/);
   assert.match(ci, /needs\.preflight-evidence\.outputs\.validated != 'true'/);
   assert.match(ci, /name: Complete suite/);
@@ -35,6 +38,7 @@ test('stable CI gate covers manual, queue, PR, and main fallback lanes', () => {
   assert.match(ci, /queue\|manual\)/);
   assert.match(ci, /post-merge\)/);
   assert.match(ci, /test "\$CODEQL" = success/);
+  assert.match(ci, /test "\$WORKFLOW_RUNTIME" = success/);
 });
 
 test('advanced CodeQL is callable only through governed CI for both languages', () => {
